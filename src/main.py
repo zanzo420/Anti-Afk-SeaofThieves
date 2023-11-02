@@ -1,5 +1,8 @@
 import pyautogui
-from pynput import keyboard
+import sys
+from pywinauto import Application
+import keyboard
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
 import tkinter as tk
 from tkinter import PhotoImage
 from tkinter import messagebox
@@ -9,40 +12,47 @@ from threading import Thread
 import time
 import random
 import win32com.client
+import string
 
-class AntiAfk():
-    def __init__(self, width, height) -> None:
-        self.width = width
-        self.height = height
+class AntiAfk(QWidget):
+    def __init__(self) -> None:
+        super().__init__()
 
         self.away = False
-        self.listening = True
         self.target_window = None
         self.pid = None
-        #keyboard.hook(self.onKeyListener())
-        
-        #threadKeyListener = Thread(target=self.onKeyListener())
-        thread = Thread(target=self.interface())
-        thread.start()
-        threadKeyListener.start()
-        
-    def interface(self):
-        root = tk.Tk()
-        root.geometry(f"{self.width}x{self.height}")
-        root.title("Anti-Afk SoT")
-        image = PhotoImage(file="images\gus.PNG")
-        label = tk.Label(root, image=image)
-        button1 = tk.Button(root, text="Start", command=lambda: self.listen("start"))
-        button2 = tk.Button(root, text="Stop", command=lambda: self.listen("stop"))
-        label.pack()
-        button1.pack(side=tk.LEFT)
-        button2.pack(side=tk.RIGHT)
-        root.mainloop()
+        self.threadAfk = None
 
-    def onKeyListener(self, e) -> bool:
-        if e.event_type == keyboard.KEY_DOWN:
-            print("key")
-            self.away = False
+        self.toggle_button = QPushButton('AFK', self)
+        self.toggle_button.clicked.connect(self.listenWindow)
+
+        self.setWindowTitle('SoT Anti AFK')
+        self.setGeometry(100, 100, 300, 100)
+        self.show()
+
+        keyListener = Thread(target=self.onKeyListener)
+        keyListener.start()
+
+
+    def onKeyListener(self):
+        while True:
+            event = keyboard.read_event()
+            if event.event_type == keyboard.KEY_DOWN:
+                badKeys = ['w', 'a', 's', 'd']
+                for i in badKeys:
+                    if event.name in string.punctuation or event.name in string.whitespace:
+                        self.away = False
+                        break
+                    elif i in event.name:
+                        self.away = True
+                        break
+                    else:
+                        self.away = False
+                print(self.away)
+
+    # in linie 43 ob der gedrückte knopf ein spezieller char ist wie strg oder so geht wahrescheinlich so das du nur event hinschreibst aber mach ich heute nicht mehr lol
+                                        
+
 
     def is_sot_running(self) -> bool:
         try: 
@@ -50,7 +60,6 @@ class AntiAfk():
             for process in wmi.InstancesOf("Win32_Process"):
                 if process.Properties_("Name").Value.lower() == "discord.exe".lower():
                     self.pid = process.Properties_['ProcessId'].Value
-                    print(self.pid)
                     return True
                 else:
                     pass
@@ -60,44 +69,51 @@ class AntiAfk():
             return False
 
     def afk(self):
-        if self.away and self.is_sot_running():
+        while self.away and self.is_sot_running():
             try:
-                for window in gw.getAllTitles():
-                    if gw.getWindowsWithTitle(window)[0].pid == 17816:
-                        window_pid = gw.getWindowsWithTitle(window)
-                        if window_pid:
-                            window.maximize()
+                print(self.pid)
+                app = Application().connect(process=self.pid)
+                app.top_window().set_focus()
 
-                            keys = ['w', 'a', 's', 'd']
-                            for key in keys:
-                                print(key)
-                                pyautogui.press(key)
-                                time.sleep(random.uniform(0.05, 2))
+                keys = ['w', 'a', 's', 'd']
+                random.shuffle(keys)
+                for key in keys:
+                    pyautogui.press(key)
+                    time.sleep(random.uniform(0.05, 2))
 
             except Exception as error:
                 print(error)
+                pass
 
-    def listen(self, status):
-        if "start" in status and self.listening == True:
-            self.listening = False
-            print("Start")
+    def startThred(self):
+        if not self.away:
             self.away = True
-            while self.away:
-                threadAfk = Thread(target=self.afk())
-                threadAfk.start()
-            print(self.pid)
-        elif "stop" in status:
-            print("Stop")
-            self.listening = True
+            self.threadAfk = Thread(target=self.afk)
+            self.threadAfk.start()
+
+    def stopThread(self):
+        if self.away:
             self.away = False
+            self.threadAfk.join()
+            self.threadAfk = None
 
-
-    def test(self):
-        if self.is_sot_running():
-            print("running")
+    def listenWindow(self):
+        if self.toggle_button.text() == 'AFK':
+            #afk
+            self.toggle_button.setText('Nicht AFK')
+            print("afk")
+            self.startThred()
         else:
-            print("not running")
+            #nicht afk
+            self.toggle_button.setText('AFK')
+            print("nicht afk")
+            self.stopThread()
+
+
 
 
 if __name__ == "__main__":
-    app = AntiAfk(300, 500)
+    app = QApplication(sys.argv)
+    window = AntiAfk()
+    window.show()
+    sys.exit(app.exec_())
