@@ -4,6 +4,8 @@ Simple Anti AFK in Sea of Thieves
 
 ## Requirements
 * Python 3.x or Higer 
+* Windows 10 or 11
+* Sea of Thieves (wow suprise)
 
 ## Run Locally
 Clone the project
@@ -33,3 +35,6 @@ or
 ```
   python3 src/main.py
 ```
+
+## Other
+The Interactive Screen May not look good right now and the Code is maybe not the Best but i am just learning how everything here works.

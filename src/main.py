@@ -1,11 +1,14 @@
 import sys
 import keyboard
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QLabel
+from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtCore import Qt
 from threading import Thread
 import time
 import random
 import wmi
 import win32gui
+import pythoncom
 
 class AntiAfk(QWidget):
     def __init__(self) -> None:
@@ -17,12 +20,19 @@ class AntiAfk(QWidget):
         self.threadAfk = None
         self.keyListener = None
         self.listening = False
-
-        self.toggle_button = QPushButton('AFK', self)
-        self.toggle_button.clicked.connect(self.listenWindow)
+        self.switch = True
+        self.images = [QPixmap('images/gus.PNG'), QPixmap('images/idk.png')]
+        self.current = 0
+        self.current_image = self.images[self.current]
 
         self.setWindowTitle('SoT Anti AFK')
-        self.setGeometry(200, 200, 300, 100)
+        self.label = QLabel(self)
+        self.label.setGeometry(200,200,200,100)
+        self.label.setPixmap(self.images[0])
+        self.label.setAlignment(Qt.AlignCenter)
+        self.label.mousePressEvent = self.listenWindow
+
+        self.setFixedSize(400, 300)
         self.show()
 
     def onKeyListener(self):
@@ -36,11 +46,14 @@ class AntiAfk(QWidget):
                     pass                                        
 
     def is_sot_running(self) -> bool:
+        pythoncom.CoInitialize()
         try: 
             c = wmi.WMI()
             for process in c.Win32_Process(name="SoTGame.exe"):
                 self.pid = process.ProcessId
+                pythoncom.CoUninitialize()
                 return True
+            pythoncom.CoUninitialize()
             return False
         except Exception as error:
             print(error)
@@ -58,10 +71,13 @@ class AntiAfk(QWidget):
                     time.sleep(random.uniform(0.05, 2))
                     keyboard.release(key)
 
-
             except Exception as error:
                 print(error)
                 pass
+        if self.is_sot_running() == False:
+            print("Your Sea of Thieves is not Running")
+            self.stopThread()
+
 
     def startThred(self):
         if not self.away:
@@ -72,26 +88,33 @@ class AntiAfk(QWidget):
 
     def stopThread(self):
         if self.away:
-            self.away = False
-            self.listening = False
-            self.threadAfk.join()
-            self.threadAfk = None
-            self.toggle_button.setText('AFK')
+            try:
+                self.away = False
+                self.listening = False
+                self.label.setPixmap(self.images[0])
+                self.current = 0
+                self.threadAfk.join()
+                self.threadAfk = None
+            except:
+                pass
 
-    def listenWindow(self):
-        if self.toggle_button.text() == 'AFK':
+    def listenWindow(self, event):
+        self.current = (self.current + 1) % len(self.images)
+        self.current_image = self.images[self.current]
+        self.label.setPixmap(self.current_image)
+
+        if self.current == 0:
+            # nicht afk
+            print("Not AFK")
+            self.stopThread()
+            self.keyListener.join()
+        else:
             #afk
-            self.toggle_button.setText('Nicht AFK')
-            print("afk")
+            print("AFK")
             self.keyListener = Thread(target=self.onKeyListener)
             self.keyListener.start()
             self.startThred()
-        else:
-            #nicht afk
-            self.toggle_button.setText('AFK')
-            print("nicht afk")
-            self.stopThread()
-            self.keyListener.join()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
