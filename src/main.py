@@ -1,7 +1,7 @@
 import sys
 import keyboard
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QLabel
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
 from threading import Thread
 import time
@@ -20,6 +20,7 @@ class AntiAfk(QWidget):
         self.threadAfk = None
         self.keyListener = None
         self.listening = False
+        self.threadstopper = True
         self.switch = True
         self.images = [QPixmap('images/gus.PNG'), QPixmap('images/idk.png')]
         self.current = 0
@@ -36,7 +37,7 @@ class AntiAfk(QWidget):
         self.show()
 
     def onKeyListener(self):
-        while self.listening:
+        while self.listening and self.threadstopper:
             event = keyboard.read_event()
             if event.event_type == keyboard.KEY_DOWN:
                 if event.scan_code > 0:
@@ -60,7 +61,7 @@ class AntiAfk(QWidget):
             return False
 
     def afk(self):
-        while self.away and self.is_sot_running():
+        while self.away and self.is_sot_running() and self.threadstopper:
             try: 
                 keys = ['w', 'a', 's', 'd']
                 random.shuffle(keys)
@@ -83,6 +84,7 @@ class AntiAfk(QWidget):
         if not self.away:
             self.away = True
             self.listening = True
+            self.threadstopper = True
             self.threadAfk = Thread(target=self.afk)
             self.threadAfk.start()
 
@@ -93,8 +95,11 @@ class AntiAfk(QWidget):
                 self.listening = False
                 self.label.setPixmap(self.images[0])
                 self.current = 0
+                self.threadstopper = False
+                self.keyListener.join()
                 self.threadAfk.join()
                 self.threadAfk = None
+                self.keyListener = None
             except:
                 pass
 
@@ -107,13 +112,12 @@ class AntiAfk(QWidget):
             # nicht afk
             print("Not AFK")
             self.stopThread()
-            self.keyListener.join()
         else:
             #afk
             print("AFK")
             self.keyListener = Thread(target=self.onKeyListener)
-            self.keyListener.start()
             self.startThred()
+            self.keyListener.start()    
 
 
 if __name__ == "__main__":

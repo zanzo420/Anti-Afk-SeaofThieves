@@ -16,10 +16,6 @@ Clone the project
 
 Go to the project directory
 
-```bash
-  cd Anti-Afk-SeaofThieves
-```
-
 Install dependencies and Start
 
 ```bash
@@ -30,8 +26,8 @@ Install dependencies and Start
   cd Path-to-the-Folder
 ```
 
-````bash
-  start.bat
+```bash
+  type start.bat
 ```
 
 ## Other
