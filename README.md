@@ -31,4 +31,6 @@ Install dependencies and Start
 ```
 
 ## Other
-The Interactive Screen May not look good right now and the Code is maybe not the Best but i am just learning how everything here works and trying to Improve.
+There maybe still bugs and other stuff but is supposed to be a simple Anti AFK and i am still learning all of this so yeah.
+
+- [Thank you for The Pictures](https://github.com/Lupus-Halfpelt)
