@@ -1,15 +1,18 @@
-import win32gui
-import win32con
-import pyautogui
+import threading
 import time
-
-pid = 17844 
-
-try:
-    x=win32gui.FindWindow("ApplicationFrameWindow", "Sea of Thieves")
-    print(x)
-    win32gui.SetForegroundWindow(x)
-    pyautogui.sleep(1)
-    pyautogui.press('space')
-except Exception as e:
-    print(f"Fehler beim Fokussieren der Anwendung: {str(e)}")
+ 
+def run(stop):
+    while True:
+        print('thread running')
+        if stop():
+                break
+                 
+def main():
+        stop_threads = False
+        t1 = threading.Thread(target = run, args =(lambda : stop_threads, ))
+        t1.start()
+        time.sleep(1)
+        stop_threads = True
+        t1.join()
+        print('thread killed')
+main()
