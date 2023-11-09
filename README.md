@@ -3,7 +3,7 @@
 Simple Anti AFK in Sea of Thieves
 
 ## Requirements
-* Python 3.x or Higher
+* Python 3.x or Higher (i am using 3.10.6)
 * Windows 10 or 11
 * Sea of Thieves (wow suprise)
 
@@ -29,6 +29,7 @@ Install dependencies and Start
 ```bash
   type start.bat
 ```
+or just double click with your mouse
 
 ## Other
 There maybe still bugs and other stuff but is supposed to be a simple Anti AFK and i am still learning all of this so yeah.
