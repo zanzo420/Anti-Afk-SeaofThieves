@@ -46,7 +46,6 @@ class AntiAfk(QMainWindow):
         
         self.textfield = QLabel("Not AFK")
         self.textfield.setStyleSheet("color: red")
-        #self.textfield.setStyleSheet("font-size: 20px;")
         self.textfield.setAlignment(Qt.AlignCenter)
 
         layout.addWidget(self.label)
@@ -127,8 +126,7 @@ class AntiAfk(QMainWindow):
             print("AFK")
         else:    
             print("Your Sea of Thieves is not Running")
-            self.stopThread()
-        
+            self.stopThread() 
 
     def stopThread(self):
         try:
@@ -158,11 +156,11 @@ class AntiAfk(QMainWindow):
             #afk
             self.keyListener = Thread(target=self.onKeyListener)
             self.startThred()
-            self.keyListener.start()    
-            
+            self.keyListener.start()     
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = AntiAfk()
+    app.setStyleSheet("QLabel{font-size: 22pt;}")
     window.show()
     sys.exit(app.exec_())
